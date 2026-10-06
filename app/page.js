@@ -79,6 +79,19 @@ export default function Home() {
     return isDoneOn(habit, new Date());
   }
 
+  function getStreak(habit) {
+    const day = new Date();
+    if (!isDoneOn(habit, day)) {
+      day.setDate(day.getDate() - 1);
+    }
+    let count = 0;
+    while (isDoneOn(habit, day)) {
+      count = count + 1;
+      day.setDate(day.getDate() - 1);
+    }
+    return count;
+  }
+
   async function markDone(habit) {
     const { error } = await supabase
       .from("completions")
@@ -141,6 +154,7 @@ export default function Home() {
             >
               {habit.name}
             </span>
+            <span>🔥 {getStreak(habit)}</span>
           </li>
         ))}
       </ul>
