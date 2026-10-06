@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 
 export default function Home() {
   const [habits, setHabits] = useState([]);
+  const [completions, setCompletions] = useState([]);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -11,6 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     loadHabits();
+    loadCompletions();
   }, []);
 
   async function loadHabits() {
@@ -22,10 +24,17 @@ export default function Home() {
     setHabits(data || []);
   }
 
+  async function loadCompletions() {
+    const { data, error } = await supabase.from("completions").select("*");
+    console.log("completions and error here-", data, error);
+    setCompletions(data || []);
+  }
+
   async function logout() {
     const { error } = await supabase.auth.signOut();
     setSession(null);
     setHabits([]);
+    setCompletions([]);
     console.log("logout error here-", error);
   }
 
@@ -36,6 +45,7 @@ export default function Home() {
     });
     setSession(data.session);
     loadHabits();
+    loadCompletions();
     console.log("login data and error here-", data, error);
   }
 
@@ -46,12 +56,28 @@ export default function Home() {
     setName("");
   }
 
+  function getTodayDate() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function isDoneToday(habit) {
+    const today = getTodayDate();
+    return completions.some(
+      (completion) =>
+        completion.habit_id === habit.id && completion.done_on === today,
+    );
+  }
+
   async function markDone(habit) {
     const { error } = await supabase
       .from("completions")
-      .insert([{ habit_id: habit.id, done_on: new Date() }]);
+      .insert([{ habit_id: habit.id, done_on: getTodayDate() }]);
     console.log("toggle habit error here-", error);
-    loadHabits();
+    loadCompletions();
   }
 
   return (
@@ -96,12 +122,16 @@ export default function Home() {
           >
             <input
               type="checkbox"
-              checked={habit.done}
+              checked={isDoneToday(habit)}
               onChange={() => markDone(habit)}
-              disabled={!session}
+              disabled={!session || isDoneToday(habit)}
               className="h-5 w-5 accent-blue-600"
             />
-            <span className={habit.done ? "line-through text-slate-400" : ""}>
+            <span
+              className={
+                isDoneToday(habit) ? "line-through text-slate-400" : ""
+              }
+            >
               {habit.name}
             </span>
           </li>
