@@ -56,20 +56,27 @@ export default function Home() {
     setName("");
   }
 
-  function getTodayDate() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 
-  function isDoneToday(habit) {
-    const today = getTodayDate();
+  function getTodayDate() {
+    return formatDate(new Date());
+  }
+
+  function isDoneOn(habit, thisDay) {
+    const day = formatDate(thisDay);
     return completions.some(
       (completion) =>
-        completion.habit_id === habit.id && completion.done_on === today,
+        completion.habit_id === habit.id && completion.done_on === day,
     );
+  }
+
+  function isDoneToday(habit) {
+    return isDoneOn(habit, new Date());
   }
 
   async function markDone(habit) {
