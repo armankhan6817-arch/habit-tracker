@@ -13,6 +13,7 @@ export default function Home() {
   useEffect(() => {
     loadHabits();
     loadCompletions();
+    restoreSession();
   }, []);
 
   async function loadHabits() {
@@ -28,6 +29,12 @@ export default function Home() {
     const { data, error } = await supabase.from("completions").select("*");
     console.log("completions and error here-", data, error);
     setCompletions(data || []);
+  }
+
+  async function restoreSession() {
+    const { data, error } = await supabase.auth.getSession();
+    console.log("data and error-", data, error);
+    setSession(data.session);
   }
 
   async function logout() {
