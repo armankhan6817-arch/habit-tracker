@@ -9,6 +9,7 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(null);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     loadHabits();
@@ -16,6 +17,10 @@ export default function Home() {
     restoreSession();
   }, []);
 
+  async function handleLogin() {
+    const value = await login(); // First action
+    setResult(value); // Second action
+  }
   async function loadHabits() {
     const { data, error } = await supabase
       .from("habits")
@@ -50,9 +55,14 @@ export default function Home() {
       email: email,
       password: password,
     });
-    setSession(data.session);
-    loadHabits();
-    loadCompletions();
+    if (error) {
+      return error.message;
+    } else {
+      setSession(data.session);
+      loadHabits();
+      loadCompletions();
+    }
+
     console.log("login data and error here-", data, error);
   }
 
@@ -133,13 +143,15 @@ export default function Home() {
           <button
             type="button"
             className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:from-indigo-600 hover:to-violet-700 hover:shadow-indigo-500/40 active:scale-[0.98]"
-            onClick={login}
+            onClick={handleLogin}
           >
             Sign In
           </button>
         </div>
       )}
       <p className="text-slate-900">{session ? "logged in" : "logged out"}</p>
+
+      <p className="text-slate-900">{result}</p>
 
       <ul className="flex flex-col w-full max-w-2xl gap-4">
         {habits.map((habit) => (
